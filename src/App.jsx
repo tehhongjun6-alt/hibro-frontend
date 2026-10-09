@@ -1,23 +1,28 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Link,
+  NavLink,
+} from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/login'
 import Signup from './pages/signup'
 import Login from './pages/login'
 import Feed from './pages/feed'
 import Friends from './pages/friends'
 
+const API_URL = 'https://hibro-backend-production.up.railway.app'
+
 export const ENDPOINTS = {
-  // signup: `${API_URL}/signup`, // POST { email, password, username }
-  signup: 'http://localhost:3000/signup',
-  // login: `${API_URL}/login`, // POST { email, password } -> token
-  login: 'http://localhost:3000/login',
-  // posts: `${API_URL}/posts`, // GET public + friends' posts
-  posts: 'http://localhost:3000/posts',
-  // createPost: `${API_URL}/posts`, // POST { title, content, visibility } -> new post
-  createPost: 'http://localhost:3000/posts',
-  // users: `${API_URL}/users`, // GET all users
-  users: 'http://localhost:3000/users',
-  // friends: `${API_URL}/friends`, // POST { friend_id } -> follow a user
-  friends: 'http://localhost:3000/friends',
+  signup: `${API_URL}/auth/signup`,
+  login: `${API_URL}/auth/login`,
+  posts: `${API_URL}/posts`,
+  createPost: `${API_URL}/posts`,
+  users: `${API_URL}/users`,
+  friends: `${API_URL}/friend`,
+  friendRequests: `${API_URL}/friend/requests`,
+  acceptFriend: (id) => `${API_URL}/friend/${id}/accept`,
 }
 
 function RequireAuth({ children }) {
@@ -32,18 +37,35 @@ function GuestOnly({ children }) {
 
 function Nav() {
   const { token, logout } = useAuth()
-  if (!token) {
-    return (
-      <nav>
-        <Link to="/login">Login</Link> | <Link to="/signup">Sign up</Link>
-      </nav>
-    )
-  }
+
   return (
-    <nav>
-      <Link to="/feed">Feed</Link> | <Link to="/friends">Friends</Link> |{' '}
-      <button onClick={logout}>Log out</button>
-    </nav>
+    <header className="site-header">
+      <nav className="site-nav" aria-label="Main navigation">
+        <Link className="brand" to={token ? '/feed' : '/login'}>
+          <img src="/hibro.png" alt="" width="52" height="52" />
+          <span>HiBro</span>
+        </Link>
+
+        <div className="nav-actions">
+          {token ? (
+            <>
+              <NavLink className="nav-link" to="/feed">Feed</NavLink>
+              <NavLink className="nav-link" to="/friends">Friends</NavLink>
+              <button className="nav-logout" type="button" onClick={logout}>
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <NavLink className="nav-link" to="/login">Log in</NavLink>
+              <NavLink className="nav-link nav-link-primary" to="/signup">
+                Sign up
+              </NavLink>
+            </>
+          )}
+        </div>
+      </nav>
+    </header>
   )
 }
 
@@ -52,14 +74,28 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Nav />
-        <hr />
-        <Routes>
-          <Route path="/signup" element={<GuestOnly><Signup /></GuestOnly>} />
-          <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
-          <Route path="/feed" element={<RequireAuth><Feed /></RequireAuth>} />
-          <Route path="/friends" element={<RequireAuth><Friends /></RequireAuth>} />
-          <Route path="*" element={<Navigate to="/feed" replace />} />
-        </Routes>
+
+        <main className="app-main">
+          <Routes>
+            <Route
+              path="/signup"
+              element={<GuestOnly><Signup /></GuestOnly>}
+            />
+            <Route
+              path="/login"
+              element={<GuestOnly><Login /></GuestOnly>}
+            />
+            <Route
+              path="/feed"
+              element={<RequireAuth><Feed /></RequireAuth>}
+            />
+            <Route
+              path="/friends"
+              element={<RequireAuth><Friends /></RequireAuth>}
+            />
+            <Route path="*" element={<Navigate to="/feed" replace />} />
+          </Routes>
+        </main>
       </BrowserRouter>
     </AuthProvider>
   )

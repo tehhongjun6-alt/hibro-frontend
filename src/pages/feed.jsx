@@ -84,8 +84,8 @@ export default function Feed() {
             <input
               type="radio"
               name="visibility"
-              value="friends"
-              checked={visibility === 'friends'}
+              value="friends-only"
+              checked={visibility === 'friends-only'}
               onChange={(e) => setVisibility(e.target.value)}
             />{' '}
             Friends only
